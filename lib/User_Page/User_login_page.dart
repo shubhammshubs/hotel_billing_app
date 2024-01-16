@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginUserScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _restoIdController = TextEditingController();
   bool _isLoading = false;
 
 
@@ -42,7 +43,7 @@ class _LoginScreenState extends State<LoginUserScreen> {
       _isLoading = true;
     });
 
-    final String apiUrl = 'https://trifrnd.in/api/inv.php?apicall=login';
+    final String apiUrl = 'https://trifrnd.in/api/inv.php?apicall=userlogin';
 
     await Future.delayed(const Duration(seconds: 1));
 
@@ -50,6 +51,7 @@ class _LoginScreenState extends State<LoginUserScreen> {
         body: {
           "mobile": _mobileController.text,
           "password": _passwordController.text,
+          "RestoId": _restoIdController.text,
         });
 
     setState(() {
@@ -66,6 +68,7 @@ class _LoginScreenState extends State<LoginUserScreen> {
 
           // Save the mobile number and login status
           sharedPreferences.setString('mobile', _mobileController.text);
+          sharedPreferences.setString('RestoId', _restoIdController.text);
           sharedPreferences.setBool('isLoggedIn', true);
 
           Navigator.pushReplacement(
@@ -73,6 +76,7 @@ class _LoginScreenState extends State<LoginUserScreen> {
             MaterialPageRoute(
               builder: (context) => FirstPage(
                 mobileNumber: _mobileController.text,
+                RestoId: _restoIdController.text,
               ),
             ),
           );
@@ -123,7 +127,33 @@ class _LoginScreenState extends State<LoginUserScreen> {
                   ),
                 ),
                 const SizedBox(height: 30,),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: TextFormField(
+                    controller: _restoIdController,
+                    // keyboardType: TextInputType.phone,
+                    textCapitalization: TextCapitalization.characters, // Automatically capitalize first letter of each word
+                    decoration: const InputDecoration(
+                      labelText: 'Restaurant Id',
+                      hintText: 'Enter Restaurant Id',
+                      prefixIcon: Icon(Icons.local_restaurant_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLength: 10,  // Set the maximum length
+                    // maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                    onChanged: (String value) {},
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter a Restaurant Id';
+                      } else if (value.length < 10) {
+                        return 'Restaurant Id must be 10 Digits';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
 
+                const SizedBox(height: 30,),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15),
                   child: TextFormField(

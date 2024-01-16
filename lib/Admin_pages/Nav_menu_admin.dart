@@ -1,26 +1,26 @@
 
 import 'package:flutter/material.dart';
+import 'package:hotel_billing_app/Admin_pages/Signup_Screen.dart';
 import 'package:hotel_billing_app/LandingPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'Admin_pages/Admin_Login_Screen.dart';
 
-class NavBar extends StatefulWidget {
+class NavBarAdmin extends StatefulWidget {
   final String mobileNumber;
   final String RestoId;
 
 
-  NavBar({
+  NavBarAdmin({
     required this.mobileNumber,
     required this.RestoId});
 
   @override
-  State<NavBar> createState() => _NavBarState();
+  State<NavBarAdmin> createState() => _NavBarState();
 }
-class _NavBarState extends State<NavBar> {
+class _NavBarState extends State<NavBarAdmin> {
   late Map<String, dynamic> userData;
   bool isLoading = false;
 
@@ -57,7 +57,6 @@ class _NavBarState extends State<NavBar> {
           ),
         ),
         SizedBox(height: 10,),
-
         // ListTile(
         //   title:
         //   Container(
@@ -91,6 +90,22 @@ class _NavBarState extends State<NavBar> {
           ),
         ),
         Divider(),
+        ListTile(
+          leading: Icon(Icons.person),
+          title: const Text("User Registration"),
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SignUpScreen(
+                  mobileNumber: widget.mobileNumber,
+                  RestoId: widget.RestoId,
+                ),
+              ),
+            );
+
+          },
+        ),
         ListTile(
           leading: Icon(Icons.report_gmailerrorred),
           title: Text("Report"),
@@ -129,7 +144,8 @@ class _NavBarState extends State<NavBar> {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
-        body: {'mobile': widget.mobileNumber,
+        body: {
+          'mobile': widget.mobileNumber,
           'RestoId': widget.RestoId
         },
       );

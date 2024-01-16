@@ -14,8 +14,15 @@ import 'Home_Screen.dart';
 class MenuListPage extends StatefulWidget {
   final int tableNumber;
   final String mobileNumber;
+  final String RestoId;
+  final bool isAdmin; // Add isAdmin property
 
-  MenuListPage({required this.tableNumber, required this.mobileNumber});
+  MenuListPage(
+      {required this.tableNumber,
+      required this.mobileNumber,
+      required this.RestoId,
+        required this.isAdmin
+      });
 
   @override
   _MenuListPageState createState() => _MenuListPageState();
@@ -51,7 +58,7 @@ class _MenuListPageState extends State<MenuListPage> {
   Future<void> _handleBluetoothPermission() async {
     var bluetoothPermissionStatus = await Permission.bluetooth.request();
     var bluetoothScanPermissionStatus =
-    await Permission.bluetoothScan.request();
+        await Permission.bluetoothScan.request();
 
     if (bluetoothPermissionStatus.isGranted &&
         bluetoothScanPermissionStatus.isGranted) {
@@ -65,7 +72,7 @@ class _MenuListPageState extends State<MenuListPage> {
   // Here we check the status of the Bluetooth Connection.
   Future<void> _checkBluetoothStatus() async {
     bool isBluetoothOn =
-    await BluetoothEnable.enableBluetooth.then((result) async {
+        await BluetoothEnable.enableBluetooth.then((result) async {
       print("Bluetooth IS On Stage one");
       await _connectToBluetoothPrinter();
       return result == "true";
@@ -124,8 +131,11 @@ class _MenuListPageState extends State<MenuListPage> {
   // ** we filter that below the code for selected table and In Process Status **
   Future<void> fetchData() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readorders';
-    final response = await http.get(Uri.parse(apiUrl));
-
+    // final response = await http.get(Uri.parse(apiUrl));
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      body: {'RestoId': widget.RestoId}, // Pass RestoId in the request body
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       setState(() {
@@ -140,8 +150,11 @@ class _MenuListPageState extends State<MenuListPage> {
   // This API is for Products to Display in Dropdown List
   Future<void> fetchProducts() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readproducts';
-    final response = await http.get(Uri.parse(apiUrl));
-
+    // final response = await http.get(Uri.parse(apiUrl));
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      body: {'RestoId': widget.RestoId}, // Pass RestoId in the request body
+    );
     if (response.statusCode == 200) {
       setState(() {
         products = List<Map<String, dynamic>>.from(
@@ -160,6 +173,7 @@ class _MenuListPageState extends State<MenuListPage> {
 
     return formattedDate;
   }
+
   String getFormattedTime() {
     DateTime now = DateTime.now();
     String CurrentTime = '${now.hour}:${now.minute}:${now.second}';
@@ -185,12 +199,12 @@ class _MenuListPageState extends State<MenuListPage> {
 
   //  THis api is for removing the product form the table and api
   Future<void> removeProduct(
-      String orderTable,
-      String productName,
-      String productQty,
-      String productPrice,
-      String productAmount,
-      ) async {
+    String orderTable,
+    String productName,
+    String productQty,
+    String productPrice,
+    String productAmount,
+  ) async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=remprod';
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -200,6 +214,7 @@ class _MenuListPageState extends State<MenuListPage> {
         'product_qty': productQty,
         'product_price': productPrice,
         'product_amount': productAmount,
+        'RestoId': widget.RestoId,
       },
     );
 
@@ -256,8 +271,8 @@ class _MenuListPageState extends State<MenuListPage> {
   TableRow buildGrandTotalDisplay(int tableNumber) {
     List<Map<String, dynamic>> ordersForTable = orderData
         .where((order) =>
-    order['order_table'] == tableNumber.toString() &&
-        order['order_status'] == 'In Process')
+            order['order_table'] == tableNumber.toString() &&
+            order['order_status'] == 'In Process')
         .toList();
 
     double grandTotal = ordersForTable.fold(0.0, (sum, order) {
@@ -283,13 +298,14 @@ class _MenuListPageState extends State<MenuListPage> {
 
   //  With this APi we change the status of the table from (In process) to (Completed).
   Future<void> completeOrder(
-      String orderTable,
-      ) async {
+    String orderTable,
+  ) async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=updateord';
     final response = await http.post(
       Uri.parse(apiUrl),
       body: {
         'order_table': orderTable,
+        'RestoId': widget.RestoId,
       },
     );
     if (response.statusCode == 200) {
@@ -308,10 +324,10 @@ class _MenuListPageState extends State<MenuListPage> {
           context,
           MaterialPageRoute(
               builder: (context) => HomePage(
-                mobileNumber: widget.mobileNumber,
-              )));
-
-
+                    mobileNumber: widget.mobileNumber,
+                    RestoId: widget.RestoId,
+                isAdmin: widget.isAdmin,
+                  )));
     } else {
       // Handle error
       print('Failed to Complete product: ${response.statusCode}');
@@ -347,6 +363,7 @@ class _MenuListPageState extends State<MenuListPage> {
             'order_table': widget.tableNumber.toString(),
             'order_date': orderDate,
             'order_time': orderTime,
+            'RestoId': widget.RestoId,
           }..removeWhere((key, value) => value == null),
         );
 
@@ -365,7 +382,6 @@ class _MenuListPageState extends State<MenuListPage> {
       } else {
         // Handle the case when the selected product is not found
         print('Selected product not found in the list.');
-
       }
     }
     // resetSelection();
@@ -391,7 +407,6 @@ class _MenuListPageState extends State<MenuListPage> {
             double.parse(selectedProductDetails['product_price']);
       } else {
         print('Selected product not found in the list.');
-
       }
     }
   }
@@ -418,8 +433,8 @@ class _MenuListPageState extends State<MenuListPage> {
 
     List<Map<String, dynamic>> ordersForTable = orderData
         .where((order) =>
-    order['order_table'] == tableNo.toString() &&
-        order['order_status'] == 'In Process')
+            order['order_table'] == tableNo.toString() &&
+            order['order_status'] == 'In Process')
         .toList();
     final latestInvoiceId = await fetchLatestInvoiceId();
     print('Latest Invoice ID: $latestInvoiceId');
@@ -444,6 +459,7 @@ class _MenuListPageState extends State<MenuListPage> {
           'qty': qty.toString(),
           'item_amt': itemAmt.toString(),
           'bill_amt': grandTotal.toString(),
+          'RestoId': widget.RestoId,
         },
       );
 
@@ -458,7 +474,6 @@ class _MenuListPageState extends State<MenuListPage> {
       }
     }
     showBillItemsPopup(ordersForTable, grandTotal, latestInvoiceId);
-
   }
 
   // This code is for getting the lettest InvoiceId from the api to pass into AddToBill
@@ -467,7 +482,7 @@ class _MenuListPageState extends State<MenuListPage> {
 
     final response = await http.post(
       Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {'RestoId': widget.RestoId}, // Pass RestoId in the request body
     );
 
     if (response.statusCode == 200) {
@@ -476,7 +491,6 @@ class _MenuListPageState extends State<MenuListPage> {
       throw Exception('Failed to fetch latest invoice ID');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -494,8 +508,8 @@ class _MenuListPageState extends State<MenuListPage> {
 
     List<Map<String, dynamic>> ordersForTable = orderData
         .where((order) =>
-    order['order_table'] == widget.tableNumber.toString() &&
-        order['order_status'] == 'In Process')
+            order['order_table'] == widget.tableNumber.toString() &&
+            order['order_status'] == 'In Process')
         .toList();
 
     return WillPopScope(
@@ -505,8 +519,10 @@ class _MenuListPageState extends State<MenuListPage> {
           context,
           MaterialPageRoute(
               builder: (context) => HomePage(
-                mobileNumber: widget.mobileNumber,
-              )),
+                    mobileNumber: widget.mobileNumber,
+                    RestoId: widget.RestoId,
+                isAdmin: widget.isAdmin,
+                  )),
         );
         // Navigator.pop(context);
         return false; // Return false to prevent default back button behavior
@@ -616,73 +632,72 @@ class _MenuListPageState extends State<MenuListPage> {
                                     style: TextStyle(
                                         fontSize: responsiveFontSize)),
                                 style: ButtonStyle(
-                                  // backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
-                                ),
+                                    // backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+                                    ),
                               ),
                             ),
                           ],
                         ),
 
-
                         const SizedBox(height: 20),
 
                         ordersForTable.isNotEmpty
                             ? SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              Align(
-                                alignment: Alignment.topLeft,
-                                child: Text(
-                                  'Date: ${getFormattedDate()}',
-                                  style: const TextStyle(fontSize: 18),
+                                child: Column(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.topLeft,
+                                      child: Text(
+                                        'Date: ${getFormattedDate()}',
+                                        style: const TextStyle(fontSize: 18),
+                                      ),
+                                    ),
+                                    Text(
+                                      'Orders for Table ${widget.tableNumber}',
+                                      style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Table(
+                                      defaultColumnWidth:
+                                          const IntrinsicColumnWidth(),
+                                      border: TableBorder.all(),
+                                      children: [
+                                        const TableRow(
+                                          children: [
+                                            TableCell(
+                                                child: Center(
+                                                    child: Text(' Sr \n No.'))),
+                                            TableCell(
+                                                child: Center(
+                                                    child:
+                                                        Text(' Item \nName '))),
+                                            TableCell(
+                                                child: Center(
+                                                    child: Text(' Quantity '))),
+                                            TableCell(
+                                                child: Center(
+                                                    child: Text(' Price '))),
+                                            TableCell(
+                                                child: Center(
+                                                    child: Text(' Total '))),
+                                            TableCell(
+                                                child: Center(
+                                                    child: Text('Remove '))),
+                                          ],
+                                        ),
+                                        for (int i = 0;
+                                            i < ordersForTable.length;
+                                            i++)
+                                          buildOrderTableRow(
+                                              i + 1, ordersForTable[i]),
+                                        buildGrandTotalDisplay(
+                                            widget.tableNumber)
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              Text(
-                                'Orders for Table ${widget.tableNumber}',
-                                style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Table(
-                                defaultColumnWidth:
-                                const IntrinsicColumnWidth(),
-                                border: TableBorder.all(),
-                                children: [
-                                  const TableRow(
-                                    children: [
-                                      TableCell(
-                                          child: Center(
-                                              child: Text(' Sr \n No.'))),
-                                      TableCell(
-                                          child: Center(
-                                              child:
-                                              Text(' Item \nName '))),
-                                      TableCell(
-                                          child: Center(
-                                              child: Text(' Quantity '))),
-                                      TableCell(
-                                          child: Center(
-                                              child: Text(' Price '))),
-                                      TableCell(
-                                          child: Center(
-                                              child: Text(' Total '))),
-                                      TableCell(
-                                          child: Center(
-                                              child: Text('Remove '))),
-                                    ],
-                                  ),
-                                  for (int i = 0;
-                                  i < ordersForTable.length;
-                                  i++)
-                                    buildOrderTableRow(
-                                        i + 1, ordersForTable[i]),
-                                  buildGrandTotalDisplay(
-                                      widget.tableNumber)
-                                ],
-                              ),
-                            ],
-                          ),
-                        )
+                              )
                             : const Center(child: Text('Add your order.')),
                       ],
                     ),
@@ -732,13 +747,16 @@ class _MenuListPageState extends State<MenuListPage> {
 
   Future<Map<String, dynamic>> fetchRestaurantData() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readhotel';
-    final responce = await http.get(Uri.parse(apiUrl));
-
-    if (responce.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(responce.body);
+    // final responce = await http.get(Uri.parse(apiUrl));
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      body: {'RestoId': widget.RestoId}, // Pass RestoId in the request body
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
       return Map<String, dynamic>.from(data.first);
     } else {
-      throw Exception('Failed to load tha Data: ${responce.statusCode}');
+      throw Exception('Failed to load tha Data: ${response.statusCode}');
     }
   }
 
@@ -763,38 +781,44 @@ class _MenuListPageState extends State<MenuListPage> {
         return AlertDialog(
           title: Center(
               child: Column(
+            children: [
+              Text('${restaurantData['resto_name']}'),
+              Text(
+                'A taste you will remember',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('${restaurantData['resto_name']}'),
                   Text(
-                    'A taste you will remember',
-                    style: TextStyle(fontSize: 14,),
+                    '${restaurantData['resto_address1']}',
+                    style: TextStyle(
+                      fontSize: 14,
+                    ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${restaurantData['resto_address1']}',
-                        style: TextStyle(fontSize: 14,),
-                      ),
-                      // SizedBox(
-                      //   width: 20,
-                      // ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${restaurantData['resto_city']}',
-                        style: TextStyle(fontSize: 14, ),
-                      ),
-                      // SizedBox(
-                      //   width: 20,
-                      // ),
-                    ],
-                  ),
+                  // SizedBox(
+                  //   width: 20,
+                  // ),
                 ],
-              )),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${restaurantData['resto_city']}',
+                    style: TextStyle(
+                      fontSize: 14,
+                    ),
+                  ),
+                  // SizedBox(
+                  //   width: 20,
+                  // ),
+                ],
+              ),
+            ],
+          )),
           content: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -802,18 +826,17 @@ class _MenuListPageState extends State<MenuListPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                        'Date: $formattedDate'
-                      // 'Date: ${readinvoice.isNotEmpty ? readinvoice[0]['inv_date'] : ''}',
-                      // style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
+                    Text('Date: $formattedDate'
+                        // 'Date: ${readinvoice.isNotEmpty ? readinvoice[0]['inv_date'] : ''}',
+                        // style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
                     Text(
                       'Inv ID: $invId',
                       style:
-                      TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
-                )  ,
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -856,7 +879,7 @@ class _MenuListPageState extends State<MenuListPage> {
                   decoration: BoxDecoration(
                     color: Colors.blue, // Set your desired background color
                     borderRadius:
-                    BorderRadius.circular(8.0), // Set border radius
+                        BorderRadius.circular(8.0), // Set border radius
                   ),
                   child: TextButton(
                     onPressed: () {
@@ -924,7 +947,10 @@ class _MenuListPageState extends State<MenuListPage> {
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
-        body: {'inv_id': invId},
+        body: {
+          'inv_id': invId,
+          'RestoId': widget.RestoId,
+        },
       );
 
       if (response.statusCode == 200) {
@@ -953,8 +979,6 @@ class _MenuListPageState extends State<MenuListPage> {
       // Assuming you have fetched the table data in the widget's state
       var tableData = await fetchTableData(invId);
 
-
-
       // Fetch restaurant data
       final restaurantData = await fetchRestaurantData();
 
@@ -968,7 +992,6 @@ class _MenuListPageState extends State<MenuListPage> {
           formattedDate = dateFormatter.format(dateTime);
         }
       }
-
 
       // Connect to Bluetooth printer
       await _connectToBluetoothPrinter();
@@ -1018,7 +1041,6 @@ class _MenuListPageState extends State<MenuListPage> {
           align: LineText.ALIGN_CENTER,
           linefeed: 1));
 
-
       list.add(LineText(
         type: LineText.TYPE_TEXT,
         content: '${restaurantData['resto_address1']}',
@@ -1042,7 +1064,7 @@ class _MenuListPageState extends State<MenuListPage> {
       ));
       list.add(LineText(
         type: LineText.TYPE_TEXT,
-        content: 'Date: $formattedDate'  +
+        content: 'Date: $formattedDate' +
             ' ' * 7 + // Add enough spaces between Bill and Date
             'Bill: $invId',
         align: LineText.ALIGN_LEFT,
@@ -1085,7 +1107,7 @@ class _MenuListPageState extends State<MenuListPage> {
 
       int maxItemNameLength = (tableData.fold<int>(
         0,
-            (maxLength, item) => maxLength > item['item_name'].length
+        (maxLength, item) => maxLength > item['item_name'].length
             ? maxLength
             : item['item_name'].length,
       ) as int);
@@ -1118,10 +1140,8 @@ class _MenuListPageState extends State<MenuListPage> {
       list.add(LineText(
         type: LineText.TYPE_TEXT,
         content: "--------------------------------",
-
         width: 10,
         align: LineText.ALIGN_LEFT,
-
         linefeed: 1,
       ));
 
@@ -1217,5 +1237,4 @@ class _MenuListPageState extends State<MenuListPage> {
       print('Stack trace: $stackTrace');
     }
   }
-
 }

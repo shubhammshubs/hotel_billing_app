@@ -7,9 +7,19 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hotel_billing_app/User_Page/page1User.dart';
 import 'package:http/http.dart' as http;
 
+import '1st_page_admin.dart';
 import 'Admin_Login_Screen.dart';
 
 class SignUpScreen extends StatefulWidget {
+  final String RestoId;
+  final String mobileNumber;
+
+
+  SignUpScreen({
+    Key? key,
+    required this.RestoId,
+    required this.mobileNumber,
+  }) : super(key: key);
 
   @override
   State<SignUpScreen> createState() => _RegistrationPageState();
@@ -53,6 +63,7 @@ class _RegistrationPageState extends State<SignUpScreen> {
       "mobile": _mobileController.text,
       "password": _passwordController.text,
       "gender": selectedGender,
+      "RestoId": widget.RestoId,
     });
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
@@ -74,10 +85,10 @@ class _RegistrationPageState extends State<SignUpScreen> {
         // Use Navigator to push HomePage onto the stack
         Navigator.of(context).push(
           MaterialPageRoute(
-              builder: (context) => FirstPage(
-                mobileNumber: _mobileController.text,
-              )),
-        );
+              builder: (context) =>FirstPageAdmin(
+          mobileNumber: widget.mobileNumber,
+          RestoId: widget.RestoId,
+        )));
       } else {
         // Login failed, show an error message
         print("Login failed");
@@ -87,15 +98,12 @@ class _RegistrationPageState extends State<SignUpScreen> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginAdminScreen()
-            //     HomePage(
-            //   mobileNumber: _mobileController.text,
-            //       // product: widget.product,
-            // ),
-          ),
-        );
+        Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (context) =>FirstPageAdmin(
+                  mobileNumber: widget.mobileNumber,
+                  RestoId: widget.RestoId,
+                )));
       }
     } else {
       // Handle error if the API call was not successful
@@ -114,46 +122,49 @@ class _RegistrationPageState extends State<SignUpScreen> {
     return WillPopScope(
       onWillPop: () async {
         // Navigate to the SignInPage when the back button is pressed
-        // Navigator.of(context).pushReplacement(
-        //   MaterialPageRoute(builder: (context) => LoginScreen()),
-        // );
+        Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (context) =>FirstPageAdmin(
+                  mobileNumber: widget.mobileNumber,
+                  RestoId: widget.RestoId,
+                )));
         // Return false to prevent the default back button behavior
         return false;
       },
       child: MaterialApp(
         home: Scaffold(
-          appBar: AppBar(
-            title: const Text(
-              'Register Screen',
-              style: TextStyle(fontWeight: FontWeight.bold,
-                // fontSize: 30,
-              ),
-            ),
-            // backgroundColor: Colors.blueAccent,
-            centerTitle: true,
-            automaticallyImplyLeading:
-            false, // Set this to false to hide the back button
-          ),
+          // appBar: AppBar(
+          //   title: const Text(
+          //     'User Register Screen',
+          //     style: TextStyle(fontWeight: FontWeight.bold,
+          //       // fontSize: 30,
+          //     ),
+          //   ),
+          //   // backgroundColor: Colors.blueAccent,
+          //   centerTitle: true,
+          //   automaticallyImplyLeading:
+          //   false, // Set this to false to hide the back button
+          // ),
           body: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(
-                  height: 50,
+                  height: 100,
                 ),
-                // Text(
-                //   'Register',
-                //   style: TextStyle(color: Colors.black,
-                //     fontWeight: FontWeight.bold,
-                //     fontSize: 30,
-                //   ),
-                //   // style: TextStyle(
-                //   //     fontSize: 35,
-                //   //     color: Colors.teal.shade300,
-                //   //     fontWeight: FontWeight.bold
-                //   // ),
-                // ),
+                Text(
+                  'User Register',
+                  style: TextStyle(color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30,
+                  ),
+                  // style: TextStyle(
+                  //     fontSize: 35,
+                  //     color: Colors.teal.shade300,
+                  //     fontWeight: FontWeight.bold
+                  // ),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 30),
                   child: Form(
@@ -213,67 +224,91 @@ class _RegistrationPageState extends State<SignUpScreen> {
                           const SizedBox(
                             height: 30,
                           ),
+                          // Padding(
+                          //   padding: const EdgeInsets.symmetric(horizontal: 15),
+                          //   child: Container(
+                          //     height: 55,
+                          //     decoration: BoxDecoration(
+                          //       border:
+                          //       Border.all(width: 1, color: Colors.grey),
+                          //       borderRadius: BorderRadius.circular(3),
+                          //     ),
+                          //     child: Row(
+                          //       children: [
+                          //         const Padding(
+                          //           padding: EdgeInsets.all(8.0),
+                          //           child: Icon(
+                          //             Icons.mobile_friendly,
+                          //             color: Colors.grey,
+                          //           ),
+                          //         ),
+                          //         SizedBox(
+                          //           width: 40,
+                          //           child: TextFormField(
+                          //             readOnly: true,
+                          //             // Set the field to read-only
+                          //             controller: countrycode,
+                          //             decoration: const InputDecoration(
+                          //               border: InputBorder.none,
+                          //             ),
+                          //           ),
+                          //         ),
+                          //         const SizedBox(width: 10),
+                          //         const Text(
+                          //           "|",
+                          //           style: TextStyle(
+                          //               fontSize: 33, color: Colors.grey),
+                          //         ),
+                          //         const SizedBox(width: 10),
+                          //         Expanded(
+                          //           child: TextFormField(
+                          //             maxLength: 10,  // Set the maximum length
+                          //
+                          //             // readOnly: true, // Set the field to read-only
+                          //             // readOnly: true, // Set the field to read-only
+                          //             keyboardType: TextInputType.number,
+                          //             controller: _mobileController,
+                          //             // Use the _mobileController to display the mobile number
+                          //             // keyboardType: TextInputType.number,
+                          //             // controller: _mobileController,
+                          //             decoration: const InputDecoration(
+                          //               border: InputBorder.none,
+                          //               hintText: 'Phone',
+                          //
+                          //             ),
+                          //           ),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 15),
-                            child: Container(
-                              height: 55,
-                              decoration: BoxDecoration(
-                                border:
-                                Border.all(width: 1, color: Colors.grey),
-                                borderRadius: BorderRadius.circular(3),
+                            child: TextFormField(
+                              controller: _mobileController,
+                              keyboardType: TextInputType.phone,
+                              decoration: const InputDecoration(
+                                labelText: 'Mobile',
+                                hintText: 'Enter Mobile Number',
+                                prefixIcon: Icon(Icons.mobile_friendly),
+                                border: OutlineInputBorder(),
                               ),
-                              child: Row(
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Icon(
-                                      Icons.mobile_friendly,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 40,
-                                    child: TextFormField(
-                                      readOnly: true,
-                                      // Set the field to read-only
-                                      controller: countrycode,
-                                      decoration: const InputDecoration(
-                                        border: InputBorder.none,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  const Text(
-                                    "|",
-                                    style: TextStyle(
-                                        fontSize: 33, color: Colors.grey),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: TextFormField(
-                                      maxLength: 10,  // Set the maximum length
-
-                                      // readOnly: true, // Set the field to read-only
-                                      // readOnly: true, // Set the field to read-only
-                                      keyboardType: TextInputType.number,
-                                      controller: _mobileController,
-                                      // Use the _mobileController to display the mobile number
-                                      // keyboardType: TextInputType.number,
-                                      // controller: _mobileController,
-                                      decoration: const InputDecoration(
-                                        border: InputBorder.none,
-                                        hintText: 'Phone',
-
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              maxLength: 10,  // Set the maximum length
+                              // maxLengthEnforcement: MaxLengthEnforcement.enforced,
+                              onChanged: (String value) {},
+                              validator: (value) {
+                                if (value!.isEmpty) {
+                                  return 'Please enter a mobile';
+                                } else if (value.length < 10) {
+                                  return 'Mobile number must be 10 Digits';
+                                }
+                                return null;
+                              },
                             ),
                           ),
-                          const SizedBox(
-                            height: 30,
-                          ),
+                            const SizedBox(
+                              height: 10,
+                            ),
 
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -354,22 +389,7 @@ class _RegistrationPageState extends State<SignUpScreen> {
                               ),
                             ),
                           ),
-                          MaterialButton(
-                            onPressed: () {
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => LoginAdminScreen(),
-                                  ));
-                            },
-                            child: const Text(
-                              "Go TO Login",
-                              style: TextStyle(
-                                color: Colors.blueAccent,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ),
+
                         ],
                       )),
                 )

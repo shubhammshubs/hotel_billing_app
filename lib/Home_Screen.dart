@@ -9,15 +9,20 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'Admin_pages/1st_page_admin.dart';
 import 'Menu_List.dart';
 import 'Nav_menu.dart';
 
 class HomePage extends StatefulWidget {
   final String mobileNumber;
+  final String RestoId;
+  final bool isAdmin; // Add isAdmin property
 
   HomePage({
     Key? key,
     required this.mobileNumber,
+    required this.RestoId,
+    required this.isAdmin,
   }) : super(key: key);
 
   @override
@@ -34,6 +39,8 @@ class _HomePageState extends State<HomePage> {
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
 
   bool _loading = false;
+  String restoName = ''; // Variable to store the resto_name
+
 
   bool _isMounted = false; // Add this line
 
@@ -42,10 +49,33 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     fetchData();
     fetchTableData();
+    fetchRestoName();
 
     _isMounted = true; // Add this line
     _handleBluetoothPermission();
   }
+  Future<void> fetchRestoName() async {
+    final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readhotel';
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      body: {'RestoId': widget.RestoId},
+    );
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      if (data.isNotEmpty) {
+        setState(() {
+          restoName = data[0]['resto_name'];
+        });
+      } else {
+        print('No data received from readhotel API');
+      }
+    } else {
+      // Handle error
+      print('Failed to load resto_name: ${response.statusCode}');
+    }
+  }
+
+
 
   Future<void> _handleBluetoothPermission() async {
     var bluetoothPermissionStatus = await Permission.bluetooth.request();
@@ -119,8 +149,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchTableData() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readtablename';
-    final response = await http.get(Uri.parse(apiUrl));
-
+    // final response = await http.get(Uri.parse(apiUrl));
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      body: {'RestoId': widget.RestoId}, // Pass RestoId in the request body
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       setState(() {
@@ -134,8 +167,11 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> fetchData() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readorders';
-    final response = await http.get(Uri.parse(apiUrl));
-
+    // final response = await http.get(Uri.parse(apiUrl));
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      body: {'RestoId': widget.RestoId}, // Pass RestoId in the request body
+    );
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       setState(() {
@@ -160,38 +196,79 @@ class _HomePageState extends State<HomePage> {
     bool isDataAvailable = ordersForTable.isNotEmpty;
     return isDataAvailable;
   }
+  Future<bool> _onWillPop() async {
+    if (widget.isAdmin) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FirstPageAdmin(
+            mobileNumber: widget.mobileNumber,
+            RestoId: widget.RestoId,
+          ),
+        ),
+      );
+      return false; // Prevents the current page from being popped
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FirstPage(
+            mobileNumber: widget.mobileNumber,
+            RestoId: widget.RestoId,
+          ),
+        ),
+      );
+      return false; // Prevents the current page from being popped
+    }
+  }
+
+
 
   Widget build(BuildContext context) {
     bool isTableBooked;
 
-    return WillPopScope(
-      onWillPop: () async {
-        // Intercept the back button press
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => FirstPage(
-              mobileNumber: widget.mobileNumber,
-            ),
-          ),
-        );
-        return false; // Do not close the current page
-      },
-      child: Scaffold(
-        key: _scaffoldKey,
-        drawer: NavBar(mobileNumber: widget.mobileNumber),
-        appBar: AppBar(
-          centerTitle: true,
-          title: Text('Order App'),
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: Icon(Icons.menu),
-            onPressed: () {
-              _scaffoldKey.currentState?.openDrawer();
-              setState(() {});
-            },
-          ),
+    return Scaffold(
+      key: _scaffoldKey,
+      drawer: NavBar(mobileNumber: widget.mobileNumber, RestoId: widget.RestoId,),
+      appBar: AppBar(
+        centerTitle: true,
+        title:  Text("$restoName"),
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: Icon(Icons.menu),
+          onPressed: () {
+            _scaffoldKey.currentState?.openDrawer();
+            setState(() {});
+          },
         ),
-        body: RefreshIndicator(
+      ),
+      body: WillPopScope(
+        onWillPop: () async {
+          if (widget.isAdmin) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FirstPageAdmin(
+                  mobileNumber: widget.mobileNumber,
+                  RestoId: widget.RestoId,
+                ),
+              ),
+            );
+            return false; // Prevents the current page from being popped
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FirstPage(
+                  mobileNumber: widget.mobileNumber,
+                  RestoId: widget.RestoId,
+                ),
+              ),
+            );
+            return false; // Prevents the current page from being popped
+          }
+        },
+        child: RefreshIndicator(
           onRefresh: () async {
             await fetchTableData();
             await fetchData();
@@ -206,28 +283,28 @@ class _HomePageState extends State<HomePage> {
             itemBuilder: (context, index) {
               isTableBooked =
                   bookedTables.contains(tableData[index]['table_name']);
-      
+        
               List<Map<String, dynamic>> ordersForTable = orderData
                   .where((order) =>
               order['order_table'] ==
                   tableData[index]['table_name'].toString() &&
                   order['order_status'] == 'In Process')
                   .toList();
-      
+        
               bool isTableInProcess = ordersForTable.isNotEmpty &&
                   ordersForTable
                       .any((order) => order['order_status'] == 'In Process');
-      
+        
               return FutureBuilder<bool>(
                 future: checkIfDataAvailable(tableData[index]['table_name']),
                 builder: (context, snapshot) {
                   bool isDataAvailable = snapshot.data ?? false;
-      
+        
                   String tableName = tableData[index]['table_name'];
                   String numericPart =
                   tableName.replaceAll(RegExp(r'[^0-9]'), '');
-                  int parsedTableNumber = int.tryParse(numericPart) ?? 0;
-      
+                  int parsedTableNumber = int.tryParse(tableName) ?? 0;
+        
                   return Padding(
                     padding: EdgeInsets.all(8.0),
                     child: ElevatedButton(
@@ -239,6 +316,8 @@ class _HomePageState extends State<HomePage> {
                                 MenuListPage(
                                   tableNumber: parsedTableNumber,
                                   mobileNumber: widget.mobileNumber,
+                                  RestoId: widget.RestoId,
+                                  isAdmin: widget.isAdmin,
                                 ),
                           ),
                         );
