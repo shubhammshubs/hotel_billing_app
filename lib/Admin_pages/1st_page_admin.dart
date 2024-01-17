@@ -3,7 +3,7 @@
   import 'package:http/http.dart' as http;
   import 'dart:convert';
 
-  import '../Nav_menu.dart';
+  import '../User_Page/Nav_menu_User.dart';
   import 'Nav_menu_admin.dart';
 
   class FirstPageAdmin extends StatefulWidget {
@@ -18,10 +18,10 @@
     }) : super(key: key);
 
     @override
-    _FirstPageState createState() => _FirstPageState();
+    _FirstPageAdmin createState() => _FirstPageAdmin();
   }
 
-  class _FirstPageState extends State<FirstPageAdmin> {
+  class _FirstPageAdmin extends State<FirstPageAdmin> {
     List<String> tableNames = [];
     List<dynamic> orderData = [];
     int totalTables = 0;
@@ -39,6 +39,7 @@
       fetchTodaysCollection(); // Fetch today's collection data
       fetchMonthCollection(); // Fetch monthly collection data
     }
+
     Future<void> fetchRestoName() async {
       final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readhotel';
       final response = await http.post(
@@ -176,11 +177,6 @@
       return isDataAvailable;
     }
 
-    Future<void> _refreshData() async {
-      await fetchDataAndCheckTableStatus();
-      await fetchTodaysCollection();
-      await fetchMonthCollection();
-    }
 
     @override
     Widget build(BuildContext context) {

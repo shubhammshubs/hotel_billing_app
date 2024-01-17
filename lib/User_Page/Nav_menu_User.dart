@@ -1,12 +1,14 @@
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hotel_billing_app/LandingPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'Admin_pages/Admin_Login_Screen.dart';
+import '../Admin_pages/Admin_Login_Screen.dart';
+import 'User_Report.dart';
 
 class NavBar extends StatefulWidget {
   final String mobileNumber;
@@ -92,10 +94,18 @@ class _NavBarState extends State<NavBar> {
         ),
         Divider(),
         ListTile(
-          leading: Icon(Icons.report_gmailerrorred),
-          title: Text("Report"),
+          leading: Icon(FontAwesomeIcons.sheetPlastic),
+          title: const Text("Daily Report"),
           onTap: () {
-            // Handle tap
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DailyReportPage(
+                  mobileNumber: widget.mobileNumber,
+                  RestoId: widget.RestoId,
+                ),
+              ),
+            );
           },
         ),
         ListTile(

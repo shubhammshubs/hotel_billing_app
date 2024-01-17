@@ -1,11 +1,16 @@
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hotel_billing_app/Admin_pages/Signup_Screen.dart';
 import 'package:hotel_billing_app/LandingPage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'Admin_Report_Daily.dart';
+import 'Admin_Report_Monthly.dart';
+import 'Forgot_Pass_for_user.dart';
 
 
 class NavBarAdmin extends StatefulWidget {
@@ -107,12 +112,83 @@ class _NavBarState extends State<NavBarAdmin> {
           },
         ),
         ListTile(
-          leading: Icon(Icons.report_gmailerrorred),
-          title: Text("Report"),
+          leading: Icon(Icons.lock_reset),
+          title: const Text("Change User Password"),
           onTap: () {
-            // Handle tap
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ForgetPassforUSer(
+                  mobileNumber: widget.mobileNumber,
+                  RestoId: widget.RestoId,
+                ),
+              ),
+            );
+
           },
         ),
+        // ListTile(
+        //   leading: Icon(FontAwesomeIcons.sheetPlastic),
+        //
+        //   // leading: Icon(Icons.report_gmailerrorred),
+        //   title: Text("Daily Report"),
+        //   onTap: () {
+        //     Navigator.pushReplacement(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => DailyReportAdmin(
+        //           mobileNumber: widget.mobileNumber,
+        //           RestoId: widget.RestoId,
+        //         ),
+        //       ),
+        //     );
+        //   },
+        // ),
+        ExpansionTile(
+          // textColor: Colors.teal,
+          // iconColor: Colors.teal,
+          leading: Icon(FontAwesomeIcons.sheetPlastic),
+          title: const Text('Report'),
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.arrow_right),
+              title: const Text('Daily Report'),
+              onTap: () {
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DailyReportAdmin(
+                      mobileNumber: widget.mobileNumber,
+                      RestoId: widget.RestoId,
+                    ),
+                  ),
+                );
+
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.arrow_right),
+
+              title: const Text('Monthly Report'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SelectMonthPage(
+                      mobileNumber: widget.mobileNumber,
+                      RestoId: widget.RestoId,
+                    ),
+                  ),
+                );
+              },
+            ),
+
+
+
+          ],
+        ),
+
         ListTile(
           leading: Icon(Icons.logout),
           title: Text("Log Out"),

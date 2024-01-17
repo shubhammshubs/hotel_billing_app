@@ -40,12 +40,13 @@ dependencies:
   permission_handler:
   bluetooth_enable_fork: ^0.1.6
   liquid_pull_to_refresh: ^3.0.1
+  month_picker_dialog: ^2.4.0
   fluttertoast: ^8.2.4
   font_awesome_flutter: ^10.5.0
   shared_preferences: ^2.2.2
   blue_thermal_printer:
   table:
-  intl: ^0.19.0
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

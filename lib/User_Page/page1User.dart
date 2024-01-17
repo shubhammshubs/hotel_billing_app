@@ -3,7 +3,7 @@ import 'package:hotel_billing_app/Home_Screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../Nav_menu.dart';
+import 'Nav_menu_User.dart';
 
 
 class FirstPage extends StatefulWidget {
@@ -104,7 +104,7 @@ class _FirstPageState extends State<FirstPage> {
       }
     } catch (e) {
       // Handle exceptions
-      print('Exception during fetchTodaysCollection: $e');
+      print('Exception during fetch Todays Collection: $e');
     }
   }
 
