@@ -51,11 +51,12 @@ class _MenuListPageState extends State<MenuListPage> {
     // Fetch products from API when the widget is initialized
     fetchProducts();
     fetchData(); // Fetch order data when the widget is initialized
-    _handleBluetoothPermission();
+    // _handleBluetoothPermission();
+    fetchRestoName();
   }
 
   // Here we check the bluetooth Permission
-  Future<void> _handleBluetoothPermission() async {
+  Future<void> _handleBluetoothPermission(String printerName, String printerAddress) async {
     var bluetoothPermissionStatus = await Permission.bluetooth.request();
     var bluetoothScanPermissionStatus =
         await Permission.bluetoothScan.request();
@@ -63,31 +64,61 @@ class _MenuListPageState extends State<MenuListPage> {
     if (bluetoothPermissionStatus.isGranted &&
         bluetoothScanPermissionStatus.isGranted) {
       print("Bluetooth Permission Granted");
-      await _checkBluetoothStatus();
+      await _checkBluetoothStatus(printerName, printerAddress);
     } else {
       print("Bluetooth Permission Failed");
     }
   }
 
   // Here we check the status of the Bluetooth Connection.
-  Future<void> _checkBluetoothStatus() async {
+  Future<void> _checkBluetoothStatus(String printerName, String printerAddress) async {
     bool isBluetoothOn =
         await BluetoothEnable.enableBluetooth.then((result) async {
       print("Bluetooth IS On Stage one");
-      await _connectToBluetoothPrinter();
+      await _connectToBluetoothPrinter(printerName, printerAddress);
       return result == "true";
     });
 
     if (isBluetoothOn) {
       print("Bluetooth IS On");
-      await _connectToBluetoothPrinter();
+      await _connectToBluetoothPrinter(printerName, printerAddress);
     } else {
       print("Bluetooth IS Off");
     }
   }
+  Future<void> fetchRestoName() async {
+    final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readhotel';
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      body: {'RestoId': widget.RestoId},
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+
+      if (data.isNotEmpty) {
+        setState(() {
+          String restoName = data[0]['resto_name'];
+          String printerName = data[0]['p_name'];
+          String printerAddress = data[0]['mac_name'];
+
+          // Call the function with the retrieved data
+          _connectToBluetoothPrinter(printerName, printerAddress);
+          _handleBluetoothPermission(printerName, printerAddress);
+
+        });
+      } else {
+        print('No data received from readhotel API');
+      }
+    } else {
+      // Handle error
+      print('Failed to load resto_name: ${response.statusCode}');
+    }
+  }
+
 
   // In this function connection to Printer code performed
-  Future<void> _connectToBluetoothPrinter() async {
+  Future<void> _connectToBluetoothPrinter(String printerName, String printerAddress) async {
     try {
       setState(() {
         _loading = true;
@@ -97,8 +128,8 @@ class _MenuListPageState extends State<MenuListPage> {
       String printerAddress = "DC:0D:30:CA:34:E6";
 
       BluetoothDevice device = BluetoothDevice();
-      device.name = printerName;
-      device.address = printerAddress;
+      // device.name = printerName;
+      // device.address = printerAddress;
 
       print('Selected Bluetooth Device: ${device.name ?? 'Unknown'}');
 
@@ -994,7 +1025,7 @@ class _MenuListPageState extends State<MenuListPage> {
       }
 
       // Connect to Bluetooth printer
-      await _connectToBluetoothPrinter();
+      // await _connectToBluetoothPrinter();
 
       DateTime now = DateTime.now();
       String orderDate = '${now.year}-${now.month}-${now.day}';
@@ -1005,8 +1036,8 @@ class _MenuListPageState extends State<MenuListPage> {
       String printerAddress = "DC:0D:30:CA:34:E6";
 
       BluetoothDevice device = BluetoothDevice();
-      device.name = printerName;
-      device.address = printerAddress;
+      // device.name = printerName;
+      // device.address = printerAddress;
 
       print('Selected Bluetooth Device: ${device.name ?? 'Unknown'}');
 

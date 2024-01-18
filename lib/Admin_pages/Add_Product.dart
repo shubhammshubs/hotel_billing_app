@@ -177,11 +177,11 @@ class _AddProductPageState extends State<AddProductPage> {
           content: SingleChildScrollView(
             child: Column(
               children: [
-                TextField(
-                  controller: categoryController,
-                  readOnly: true,
-                  decoration: InputDecoration(labelText: 'Category Name'),
-                ),
+                // TextField(
+                //   controller: categoryController,
+                //   readOnly: true,
+                //   decoration: InputDecoration(labelText: 'Category Name'),
+                // ),
                 TextField(
                   controller: productNameController,
                   readOnly: true,
