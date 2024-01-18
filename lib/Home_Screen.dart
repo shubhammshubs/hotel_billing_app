@@ -123,8 +123,8 @@ class _HomePageState extends State<HomePage> {
       print('Selected Bluetooth Device: ${device.name ?? 'Unknown'}');
 
       if (await bluetoothPrint.isConnected == true) {
-        print('Already connected to ${device.name}');
-        // await bluetoothPrint.connect(device);
+        // print('Already connected to ${device.name}');
+        await bluetoothPrint.connect(device);
       } else {
         await bluetoothPrint.connect(device);
 
@@ -229,18 +229,40 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       key: _scaffoldKey,
-      drawer: NavBar(mobileNumber: widget.mobileNumber, RestoId: widget.RestoId,),
+      // drawer: NavBar(mobileNumber: widget.mobileNumber, RestoId: widget.RestoId,),
       appBar: AppBar(
         centerTitle: true,
         title:  Text("$restoName"),
         automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: Icon(Icons.menu),
-          onPressed: () {
-            _scaffoldKey.currentState?.openDrawer();
-            setState(() {});
-          },
-        ),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              if (widget.isAdmin) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FirstPageAdmin(
+                      mobileNumber: widget.mobileNumber,
+                      RestoId: widget.RestoId,
+                    ),
+                  ),
+                );
+                // return false; // Prevents the current page from being popped
+              } else {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FirstPage(
+                      mobileNumber: widget.mobileNumber,
+                      RestoId: widget.RestoId,
+                    ),
+                  ),
+                );
+                // return false; // Prevents the current page from being popped
+              }
+
+            },
+          ),
       ),
       body: WillPopScope(
         onWillPop: () async {

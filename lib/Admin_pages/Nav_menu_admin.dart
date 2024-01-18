@@ -8,9 +8,11 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'Add_Product.dart';
 import 'Admin_Report_Daily.dart';
 import 'Admin_Report_Monthly.dart';
 import 'Forgot_Pass_for_user.dart';
+import 'draft.dart';
 
 
 class NavBarAdmin extends StatefulWidget {
@@ -96,21 +98,53 @@ class _NavBarState extends State<NavBarAdmin> {
         ),
         Divider(),
         ListTile(
-          leading: Icon(Icons.person),
-          title: const Text("User Registration"),
+          leading: const Icon(Icons.menu_book),
+
+          title: const Text('Add Menu'),
           onTap: () {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => SignUpScreen(
+                builder: (context) => AddProductPage(
                   mobileNumber: widget.mobileNumber,
                   RestoId: widget.RestoId,
                 ),
               ),
             );
-
           },
         ),
+        // ListTile(
+        //   leading: const Icon(Icons.arrow_right),
+        //
+        //   title: const Text('ProductListWidget'),
+        //   onTap: () {
+        //     Navigator.pushReplacement(
+        //       context,
+        //       MaterialPageRoute(
+        //         builder: (context) => ProductListWidget(
+        //           mobileNumber: widget.mobileNumber,
+        //           RestoId: widget.RestoId,
+        //         ),
+        //       ),
+        //     );
+        //   },
+        // ),
+        // ListTile(
+        //   leading: Icon(Icons.person),
+        //   title: const Text("User Registration"),
+        //   onTap: () {
+        //     // Navigator.pushReplacement(
+        //     //   context,
+        //     //   MaterialPageRoute(
+        //     //     builder: (context) => SignUpScreen(
+        //     //       mobileNumber: widget.mobileNumber,
+        //     //       RestoId: widget.RestoId,
+        //     //     ),
+        //     //   ),
+        //     // );
+        //
+        //   },
+        // ),
         ListTile(
           leading: Icon(Icons.lock_reset),
           title: const Text("Change User Password"),
