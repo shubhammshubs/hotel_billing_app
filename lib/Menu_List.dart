@@ -86,6 +86,7 @@ class _MenuListPageState extends State<MenuListPage> {
       print("Bluetooth IS Off");
     }
   }
+  // Get hotel name
   Future<void> fetchRestoName() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readhotel';
     final response = await http.post(

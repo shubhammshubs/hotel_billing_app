@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:collection/collection.dart';
 
 class SelectMonthPage extends StatefulWidget {
   final String mobileNumber;
@@ -31,6 +32,8 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
   bool isMonthlyData = false;
   BluetoothPrint bluetoothPrint = BluetoothPrint.instance;
   bool _loading = false;
+  Map<String, List<dynamic>> groupedData = {};
+
 
   @override
 
@@ -57,14 +60,14 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
       final List<dynamic> data = jsonDecode(response.body);
 
       if (data.isNotEmpty) {
-        setState(() {
+        setState(() async {
           String restoName = data[0]['resto_name'];
           String printerName = data[0]['p_name'];
           String printerAddress = data[0]['mac_name'];
 
           // Call the function with the retrieved data
-          _connectToBluetoothPrinter(printerName, printerAddress);
-          _handleBluetoothPermission(printerName, printerAddress);
+          await _handleBluetoothPermission(printerName, printerAddress);
+          await _connectToBluetoothPrinter(printerName, printerAddress);
 
         });
       } else {
@@ -343,13 +346,25 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
     }
   }
 
+  // void filterMonthlyReport() {
+  //   final String selectedMonth = DateFormat('MM').format(selectedDate);
+  //   monthlyReportData = allReportData.where((report) {
+  //     final String reportMonth = DateFormat('MM').format(DateTime.parse(report['created']));
+  //     return reportMonth == selectedMonth;
+  //   }).toList();
+  // }
+
   void filterMonthlyReport() {
     final String selectedMonth = DateFormat('MM').format(selectedDate);
     monthlyReportData = allReportData.where((report) {
       final String reportMonth = DateFormat('MM').format(DateTime.parse(report['created']));
       return reportMonth == selectedMonth;
     }).toList();
+
+    // Group monthly report data by date
+    groupedData = groupBy(monthlyReportData, (report) => DateFormat('dd/MM/yyyy').format(DateTime.parse(report['created'])));
   }
+
 
   Future<void> _selectMonth(BuildContext context) async {
     DateTime pickedMonth = DateTime.now();
@@ -369,13 +384,195 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
   }
 
   @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       centerTitle: true,
+  //       title: Text("Monthly Report "),
+  //       leading: IconButton(
+  //         icon: Icon(Icons.arrow_back),
+  //         onPressed: () {
+  //           Navigator.pushReplacement(
+  //             context,
+  //             MaterialPageRoute(
+  //               builder: (context) => FirstPageAdmin(
+  //                 mobileNumber: widget.mobileNumber,
+  //                 RestoId: widget.RestoId,
+  //               ),
+  //             ),
+  //           );
+  //         },
+  //       ),
+  //     ),
+  //     body: WillPopScope(
+  //       onWillPop: () async {
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(
+  //             builder: (context) => FirstPageAdmin(
+  //               mobileNumber: widget.mobileNumber,
+  //               RestoId: widget.RestoId,
+  //             ),
+  //           ),
+  //         );
+  //         return false;
+  //       },
+  //       child: RefreshIndicator(
+  //         onRefresh: () async {
+  //           if (isMonthlyData) {
+  //             await fetchAllReportData();
+  //             await fetchRestaurantData();
+  //           }
+  //         },
+  //         child: SingleChildScrollView(
+  //           child: Center(
+  //             child: Column(
+  //               children: [
+  //
+  //                 Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //                   children: [
+  //                     ElevatedButton(
+  //                       onPressed: () {
+  //                         setState(() {
+  //                           isMonthlyData = true;
+  //                         });
+  //                         _selectMonth(context);
+  //                       },
+  //                       child: Text("Select Month"),
+  //                     ),
+  //                     ElevatedButton(
+  //                       onPressed: () => _printData(),
+  //                       child: Text("Print"),
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 SizedBox(height: 10),
+  //                 Text(
+  //                   "Selected ${isMonthlyData ? 'Month' : 'Date'}: ${isMonthlyData ? DateFormat('MM/yyyy').format(selectedDate) : DateFormat('dd/MM/yyyy').format(selectedDate)}",
+  //                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //                 ),
+  //
+  //                 if (isMonthlyData && monthlyReportData.isEmpty)
+  //                   Column(
+  //                     mainAxisAlignment: MainAxisAlignment.center,
+  //                     crossAxisAlignment: CrossAxisAlignment.center,
+  //                     children: [
+  //                       SizedBox(height: 100,),
+  //                       Card(
+  //                         margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+  //                         child: Padding(
+  //                           padding: const EdgeInsets.all(16.0),
+  //                           child: Column(
+  //                             children: [
+  //                               Icon(Icons.report_gmailerrorred,color: Colors.red,),
+  //                               SizedBox(height: 10,),
+  //                               Text(
+  //                                 "No data available for the selected month.",
+  //                                 style: TextStyle(fontSize: 16),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ],
+  //                   ),
+  //
+  //                 if (isMonthlyData && monthlyReportData.isNotEmpty)
+  //                 // Display monthly report data
+  //                 //   SingleChildScrollView(
+  //                 //     child:
+  //                    ListView.builder(
+  //                       shrinkWrap: true,
+  //                       itemCount: monthlyReportData.length,
+  //                       itemBuilder: (context, index) {
+  //                         String formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.parse(monthlyReportData[index]['created']));
+  //
+  //                         String formattedTime = DateFormat.Hm().format(DateTime.parse(monthlyReportData[index]['created']));
+  //
+  //                         return Card(
+  //                           elevation: 5,
+  //                           margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+  //                           child: ListTile(
+  //                             title: Column(
+  //                               children: [
+  //                                 if (isMonthlyData) Text("$formattedDate"), // Display Date only for Select Month
+  //                                 SizedBox(height: 10,),
+  //                                 Row(
+  //                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                                   children: [
+  //                                     Text(
+  //                                       "Inv ID: ${monthlyReportData[index]['inv_id']}",
+  //                                       style: TextStyle(fontWeight: FontWeight.bold),
+  //                                     ),
+  //                                     Text("Time: $formattedTime"),
+  //                                   ],
+  //                                 ),
+  //                               ],
+  //                             ),
+  //                             subtitle: Row(
+  //                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                               children: [
+  //                                 Text("Table No: ${monthlyReportData[index]['table_no']}"),
+  //                                 Text("Bill Amount: ₹${monthlyReportData[index]['bill_amt']}"),
+  //
+  //                               ],
+  //                             ),
+  //                           ),
+  //                         );
+  //                       },
+  //                     ),
+  //                   // ),
+  //                 if (!isMonthlyData && dailyReportData.isNotEmpty)
+  //                 // Display daily report data
+  //                   ListView.builder(
+  //                     shrinkWrap: true,
+  //                     itemCount: dailyReportData.length,
+  //                     itemBuilder: (context, index) {
+  //                       String formattedTime = DateFormat.Hm().format(DateTime.parse(dailyReportData[index]['created']));
+  //
+  //                       return Card(
+  //                         elevation: 5,
+  //                         margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+  //                         child: ListTile(
+  //                           title: Row(
+  //                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                             children: [
+  //                               Text(
+  //                                 "Inv ID: ${dailyReportData[index]['inv_id']}",
+  //                                 style: TextStyle(fontWeight: FontWeight.bold),
+  //                               ),
+  //                               Text("Time: $formattedTime"),
+  //                             ],
+  //                           ),
+  //                           subtitle: Row(
+  //                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //                             children: [
+  //                               Text("Table No: ${dailyReportData[index]['table_no']}"),
+  //                               Text("Bill Amount: ₹${dailyReportData[index]['bill_amt']}"),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                       );
+  //                     },
+  //                   ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Monthly Report "),
+        title: const Text("Monthly Report "),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pushReplacement(
               context,
@@ -409,12 +606,12 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
               await fetchRestaurantData();
             }
           },
-          child: SingleChildScrollView(
+          child: Container(
             child: Center(
               child: Column(
                 children: [
-
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(
                         onPressed: () {
@@ -423,22 +620,22 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
                           });
                           _selectMonth(context);
                         },
-                        child: Text("Select Month"),
+                        child: const Text("Select Month"),
                       ),
                       ElevatedButton(
                         onPressed: () => _printData(),
-                        child: Text("Print"),
+                        child: const Text("Print"),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Text(
                     "Selected ${isMonthlyData ? 'Month' : 'Date'}: ${isMonthlyData ? DateFormat('MM/yyyy').format(selectedDate) : DateFormat('dd/MM/yyyy').format(selectedDate)}",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
 
                   if (isMonthlyData && monthlyReportData.isEmpty)
-                    Column(
+                    const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -446,10 +643,10 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
                         Card(
                           margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: EdgeInsets.all(16.0),
                             child: Column(
                               children: [
-                                Icon(Icons.report_gmailerrorred,color: Colors.red,),
+                                Icon(Icons.report_gmailerrorred, color: Colors.red,),
                                 SizedBox(height: 10,),
                                 Text(
                                   "No data available for the selected month.",
@@ -463,33 +660,43 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
                     ),
 
                   if (isMonthlyData && monthlyReportData.isNotEmpty)
-                  // Display monthly report data
-                  //   SingleChildScrollView(
-                  //     child:
-        ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: monthlyReportData.length,
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: groupedData.length,
                         itemBuilder: (context, index) {
-                          String formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.parse(monthlyReportData[index]['created']));
-                      
-                          String formattedTime = DateFormat.Hm().format(DateTime.parse(monthlyReportData[index]['created']));
-                      
+                          String formattedDate = groupedData.keys.elementAt(index);
+                          List<dynamic> billsForDate = groupedData[formattedDate]!;
+                          String formattedTime = DateFormat.Hm().format(DateTime.parse(billsForDate[0]['created']));
+
+                          // Calculate total for the current date
+                          double totalForDate = 0;
+                          for (var report in billsForDate) {
+                            totalForDate += double.parse(report['bill_amt']);
+                          }
+
                           return Card(
                             elevation: 5,
-                            margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                             child: ListTile(
                               title: Column(
                                 children: [
-                                  if (isMonthlyData) Text("$formattedDate"), // Display Date only for Select Month
-                                  SizedBox(height: 10,),
+                                  if (isMonthlyData) Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text("Date: $formattedDate"),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10,),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Inv ID: ${monthlyReportData[index]['inv_id']}",
-                                        style: TextStyle(fontWeight: FontWeight.bold),
+                                        "Total Amt: ₹$totalForDate", // Display total amount for the date
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
                                       ),
-                                      Text("Time: $formattedTime"),
+                                      Text("Total Bills: ${billsForDate.length}"), // Display number of bills for the date
+
+                                      // Text("Time: $formattedTime"),
                                     ],
                                   ),
                                 ],
@@ -497,49 +704,49 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
                               subtitle: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("Table No: ${monthlyReportData[index]['table_no']}"),
-                                  Text("Bill Amount: ₹${monthlyReportData[index]['bill_amt']}"),
-                      
                                 ],
                               ),
                             ),
                           );
                         },
                       ),
-                    // ),
-                  if (!isMonthlyData && dailyReportData.isNotEmpty)
-                  // Display daily report data
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: dailyReportData.length,
-                      itemBuilder: (context, index) {
-                        String formattedTime = DateFormat.Hm().format(DateTime.parse(dailyReportData[index]['created']));
-
-                        return Card(
-                          elevation: 5,
-                          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                          child: ListTile(
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Inv ID: ${dailyReportData[index]['inv_id']}",
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text("Time: $formattedTime"),
-                              ],
-                            ),
-                            subtitle: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Table No: ${dailyReportData[index]['table_no']}"),
-                                Text("Bill Amount: ₹${dailyReportData[index]['bill_amt']}"),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
                     ),
+
+
+
+                  // if (!isMonthlyData && dailyReportData.isNotEmpty)
+                  //   Expanded(
+                  //     child: ListView.builder(
+                  //       itemCount: dailyReportData.length,
+                  //       itemBuilder: (context, index) {
+                  //         String formattedTime = DateFormat.Hm().format(DateTime.parse(dailyReportData[index]['created']));
+                  //
+                  //         return Card(
+                  //           elevation: 5,
+                  //           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  //           child: ListTile(
+                  //             title: Row(
+                  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //               children: [
+                  //                 Text(
+                  //                   "Inv ID: ${dailyReportData[index]['inv_id']}",
+                  //                   style: const TextStyle(fontWeight: FontWeight.bold),
+                  //                 ),
+                  //                 Text("Time: $formattedTime"),
+                  //               ],
+                  //             ),
+                  //             subtitle: Row(
+                  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //               children: [
+                  //                 Text("Table No: ${dailyReportData[index]['table_no']}"),
+                  //                 Text("Bill Amount: ₹${dailyReportData[index]['bill_amt']}"),
+                  //               ],
+                  //             ),
+                  //           ),
+                  //         );
+                  //       },
+                  //     ),
+                  //   ),
                 ],
               ),
             ),
@@ -548,4 +755,5 @@ class _DailyReportAdminState extends State<SelectMonthPage> {
       ),
     );
   }
+
 }

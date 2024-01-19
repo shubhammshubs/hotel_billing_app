@@ -17,6 +17,21 @@ class LandingPage extends StatelessWidget {
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Container(
+              color: Colors.white60,
+              height: 190,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Image.asset(
+                      'assets/image/img.png',
+                      fit: BoxFit.fitHeight,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20,),
             GridView.count(
               shrinkWrap: true,
               crossAxisCount: 1,
@@ -49,6 +64,7 @@ class LandingPage extends StatelessWidget {
                 ),
               ],
             ),
+            // Admin Login Button
             GridView.count(
               shrinkWrap: true,
               crossAxisCount: 2,
@@ -81,7 +97,7 @@ class LandingPage extends StatelessWidget {
                   children: [
                     Text(
                       "Login As an Admin",
-                      style: TextStyle(fontSize: 17, color: Colors.white),
+                      style: TextStyle(fontSize: 15, color: Colors.white),
                     ),
                     SizedBox(height: 10),
                   ],
@@ -91,7 +107,7 @@ class LandingPage extends StatelessWidget {
                   ),
                 ),
 
-
+                // User Login Button
                 GestureDetector(
                   onTap: () {
                     // Add navigation logic here to redirect to the login page
@@ -114,7 +130,7 @@ class LandingPage extends StatelessWidget {
                         child:
                         Text(
                           "Login As an User",
-                          style: TextStyle(fontSize: 17, color: Colors.white),
+                          style: TextStyle(fontSize: 15, color: Colors.white),
                         ),
                       ),
                     ),

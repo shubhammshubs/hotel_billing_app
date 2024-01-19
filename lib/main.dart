@@ -84,7 +84,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Your App Title',
+      title: 'Hotel Billing App',
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),

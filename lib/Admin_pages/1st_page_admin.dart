@@ -39,7 +39,7 @@
       fetchTodaysCollection(); // Fetch today's collection data
       fetchMonthCollection(); // Fetch monthly collection data
     }
-
+    // This is Api to display the Hotel Name and Printer Name and Address
     Future<void> fetchRestoName() async {
       final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readhotel';
       final response = await http.post(
@@ -60,7 +60,7 @@
         print('Failed to load resto_name: ${response.statusCode}');
       }
     }
-
+    // Today's Total Collection Api
     Future<void> fetchTodaysCollection() async {
       final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=todaycoll';
       // final response = await http.get(Uri.parse(apiUrl));
@@ -80,6 +80,7 @@
       }
     }
 
+    // Monthly Total Collection Api
 
     Future<void> fetchMonthCollection() async {
       final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=monthcoll';
@@ -98,7 +99,7 @@
         print('Failed to load monthly collection: ${response.statusCode}');
       }
     }
-
+    //  Check if Total Tables from api
     Future<void> fetchDataAndCheckTableStatus() async {
       await fetchTableData();
       await fetchData();
@@ -119,7 +120,7 @@
       // Update the state to trigger a rebuild with the new values
       setState(() {});
     }
-
+    // Getting the total Table Name
     Future<void> fetchTableData() async {
       final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readtablename';
       // final response = await http.get(Uri.parse(apiUrl));
@@ -144,7 +145,7 @@
         print('Failed to load table data: ${response.statusCode}');
       }
     }
-
+    // Getting the total ordres form the api
     Future<void> fetchData() async {
       final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readorders';
       // final response = await http.get(Uri.parse(apiUrl));
@@ -162,7 +163,7 @@
         print('Failed to load data: ${response.statusCode}');
       }
     }
-
+    // This function is for checking if the table is availbale or occupied
     Future<bool> checkIfDataAvailable(String tableName) async {
       String numericPart = tableName.replaceAll(RegExp(r'[^0-9]'), '');
       int parsedTableNumber = int.tryParse(numericPart) ?? 0;
@@ -189,6 +190,7 @@
           centerTitle: true,
           title:  Text("$restoName"),
         ),
+        // Pull down to Refresh page
         body: RefreshIndicator(
           onRefresh:  () async{
 
@@ -201,7 +203,7 @@
             child: Center(
               child: Column(
                 children: [
-
+                  // Monthly Collection Card
                   Card(
                     elevation: 5, // This controls the shadow depth
                     shape: RoundedRectangleBorder(
@@ -241,6 +243,7 @@
                       ),
                     ),
                   ),
+                  // Daily Collection Card
                   GridView.count(
                     shrinkWrap: true,
                     crossAxisCount: 2,
@@ -261,8 +264,8 @@
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Center(
-                                  child: const Text(
+                                const Center(
+                                  child: Text(
                                     "Today's Collection:",
                                     style: TextStyle(fontSize: 15, color: Colors.white),
                                   ),
@@ -290,7 +293,7 @@
                           ),
                         ),
                       ),
-
+                      // Total Table
                       Card(
                         elevation: 5,
                         shape: RoundedRectangleBorder(
@@ -345,6 +348,8 @@
                       //     ),
                       //   ),
                       // ),
+
+                      /*Available Table  Card*/
                       Card(
                         elevation: 5,
                         shape: RoundedRectangleBorder(
@@ -382,6 +387,7 @@
                           ),
                         ),
                       ),
+                    // Occupied Table Card
                     Card(
                         elevation: 5,
                         shape: RoundedRectangleBorder(
@@ -420,41 +426,10 @@
                           ),
                         ),
                       ),
-                      // Card(
-                      //   elevation: 5, // This controls the shadow depth
-                      //   shape: RoundedRectangleBorder(
-                      //     borderRadius: BorderRadius.circular(10.0),
-                      //   ),
-                      //   color: Colors.blueAccent,
-                      //   child: Padding(
-                      //     padding: const EdgeInsets.all(8.0),
-                      //     child: Center(
-                      //       child: Text(
-                      //         "Available table : $availableTables ",
-                      //         style: const TextStyle(fontSize: 17, color: Colors.white),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-                      // Card(
-                      //   elevation: 5, // This controls the shadow depth
-                      //   shape: RoundedRectangleBorder(
-                      //     borderRadius: BorderRadius.circular(10.0),
-                      //   ),
-                      //   color: Colors.red.shade400,
-                      //   child: Padding(
-                      //     padding: const EdgeInsets.all(8.0),
-                      //     child: Center(
-                      //       child: Text(
-                      //         "Occupied Table : $occupiedTables ",
-                      //         style: const TextStyle(fontSize: 17, color: Colors.white),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
                     ],
                   ),
                   const SizedBox(height: 20),
+                  // Button for Book table
                   MaterialButton(
                     onPressed: () {
                       Navigator.push(

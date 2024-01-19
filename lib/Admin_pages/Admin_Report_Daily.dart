@@ -54,14 +54,14 @@ class _DailyReportAdminState extends State<DailyReportAdmin> {
       final List<dynamic> data = jsonDecode(response.body);
 
       if (data.isNotEmpty) {
-        setState(() {
+        setState(() async {
           String restoName = data[0]['resto_name'];
           String printerName = data[0]['p_name'];
           String printerAddress = data[0]['mac_name'];
 
           // Call the function with the retrieved data
-          _connectToBluetoothPrinter(printerName, printerAddress);
-          _handleBluetoothPermission(printerName, printerAddress);
+          await _handleBluetoothPermission(printerName, printerAddress);
+          await _connectToBluetoothPrinter(printerName, printerAddress);
 
         });
       } else {

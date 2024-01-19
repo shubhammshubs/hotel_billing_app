@@ -40,6 +40,8 @@ class _HomePageState extends State<HomePage> {
 
   bool _loading = false;
   String restoName = ''; // Variable to store the resto_name
+  String printerName = ''; // Declare printerName at the class level
+  String printerAddress = ''; // Declare
 
 
   bool _isMounted = false; // Add this line
@@ -50,6 +52,7 @@ class _HomePageState extends State<HomePage> {
     fetchData();
     fetchTableData();
     fetchRestoName();
+    // _handleBluetoothPermission(printerName, printerAddress);
 
     _isMounted = true; // Add this line
   }
@@ -87,14 +90,15 @@ class _HomePageState extends State<HomePage> {
       final List<dynamic> data = jsonDecode(response.body);
 
       if (data.isNotEmpty) {
-        setState(() {
+        setState(() async {
           restoName = data[0]['resto_name'];
           String printerName = data[0]['p_name'];
           String printerAddress = data[0]['mac_name'];
 
-          // Call the function with the retrieved data
-          _connectToBluetoothPrinter(printerName, printerAddress);
-          _handleBluetoothPermission(printerName, printerAddress);
+
+          await _handleBluetoothPermission(printerName, printerAddress);
+          await _connectToBluetoothPrinter(printerName, printerAddress);
+
 
         });
       } else {
@@ -107,7 +111,7 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-
+  //  Check the Permission
   Future<void> _handleBluetoothPermission(String printerName, String printerAddress) async {
     var bluetoothPermissionStatus = await Permission.bluetooth.request();
     var bluetoothScanPermissionStatus =
@@ -121,7 +125,7 @@ class _HomePageState extends State<HomePage> {
       print("Bluetooth Permission Failed");
     }
   }
-
+  // Check if the Bluetooth is on or not
   Future<void> _checkBluetoothStatus(String printerName, String printerAddress) async {
     bool isBluetoothOn =
     await BluetoothEnable.enableBluetooth.then((result) async {
@@ -141,7 +145,7 @@ class _HomePageState extends State<HomePage> {
       print("Bluetooth IS Off");
     }
   }
-
+  // Connect to BT
   Future<void> _connectToBluetoothPrinter(String printerName, String printerAddress) async {
     try {
       setState(() {
@@ -181,7 +185,7 @@ class _HomePageState extends State<HomePage> {
       });
     }
   }
-
+  // Get the Table Name from api
   Future<void> fetchTableData() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readtablename';
     // final response = await http.get(Uri.parse(apiUrl));
@@ -199,7 +203,7 @@ class _HomePageState extends State<HomePage> {
       print('Failed to load table data: ${response.statusCode}');
     }
   }
-
+  // Get the In process orders from the api
   Future<void> fetchData() async {
     final apiUrl = 'https://trifrnd.in/api/inv.php?apicall=readorders';
     // final response = await http.get(Uri.parse(apiUrl));
@@ -217,7 +221,7 @@ class _HomePageState extends State<HomePage> {
       print('Failed to load data: ${response.statusCode}');
     }
   }
-
+  // Filter all the orders to In process orders
   Future<bool> checkIfDataAvailable(String tableName) async {
     String numericPart = tableName.replaceAll(RegExp(r'[^0-9]'), '');
     int parsedTableNumber = int.tryParse(numericPart) ?? 0;
@@ -352,7 +356,7 @@ class _HomePageState extends State<HomePage> {
               bool isTableInProcess = ordersForTable.isNotEmpty &&
                   ordersForTable
                       .any((order) => order['order_status'] == 'In Process');
-        
+              // Button to show the Tables
               return FutureBuilder<bool>(
                 future: checkIfDataAvailable(tableData[index]['table_name']),
                 builder: (context, snapshot) {

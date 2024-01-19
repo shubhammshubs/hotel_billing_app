@@ -12,7 +12,7 @@ import 'Add_Product.dart';
 import 'Admin_Report_Daily.dart';
 import 'Admin_Report_Monthly.dart';
 import 'Forgot_Pass_for_user.dart';
-import 'draft.dart';
+// import 'draft.dart';
 
 
 class NavBarAdmin extends StatefulWidget {
